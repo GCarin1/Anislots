@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Nunito:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ── Theme Configuration (Tailwind v4) ── */
+@theme inline {
+  --color-background: var(--app-bg);
+  --color-foreground: var(--app-text);
+  --color-surface: var(--app-surface);
+  --color-border: var(--app-border);
+  --color-muted: var(--app-text-muted);
+  --color-waifu-primary: var(--waifu-primary);
+  --color-waifu-secondary: var(--waifu-secondary);
+  --color-waifu-glow: var(--waifu-glow);
+  --color-jackpot-gold: #fbbf24;
+  --font-display: 'Orbitron', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+}
+
+/* ── CSS Variables Base (dark tema padrão) ── */
+:root {
+  --app-bg: #0a0a0f;
+  --app-surface: #12121a;
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-text: #f8f8ff;
+  --app-text-muted: rgba(248, 248, 255, 0.5);
+
+  /* Waifu theme vars (overridden dinamicamente) */
+  --waifu-primary: #ff6eb4;
+  --waifu-secondary: #ffd6e7;
+  --waifu-glow: rgba(255, 105, 180, 0.4);
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  font-family: 'Nunito', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Glassmorphism ─────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--app-border);
+}
+
+/* ── Neon glow utilities ────────────────── */
+.glow-waifu {
+  box-shadow: 0 0 20px var(--waifu-glow), 0 0 60px var(--waifu-glow);
+}
+.text-glow-waifu {
+  text-shadow: 0 0 10px var(--waifu-primary), 0 0 30px var(--waifu-primary);
+}
+
+/* ── Slot reel ────────────────────────── */
+.reel-container {
+  overflow: hidden;
+  border-radius: 8px;
+  border: 2px solid var(--waifu-primary);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px var(--waifu-glow);
+}
+
+/* ── Scrollbar custom ─────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--waifu-primary); border-radius: 2px; }
+
+/* ── Animações ───────────────────────── */
+@keyframes jackpot-flash {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.jackpot-flash { animation: jackpot-flash 0.3s ease-in-out infinite; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.float { animation: float 3s ease-in-out infinite; }
+
+@keyframes spin-reel {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100%); }
+}
