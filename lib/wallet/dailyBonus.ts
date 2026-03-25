@@ -40,6 +40,21 @@ export function calculateBonusResult(currentBalance: number): BonusResult {
   };
 }
 
+/**
+ * Builds the update payload for the daily bonus claim.
+ * Only includes columns guaranteed to exist in the wallets table schema.
+ * Excludes `updated_at` to avoid conflicts with DB triggers/defaults.
+ */
+export function buildBonusUpdatePayload(
+  newBalance: number,
+  timestamp: string,
+): { virtual_coins: number; last_daily_bonus_at: string } {
+  return {
+    virtual_coins: newBalance,
+    last_daily_bonus_at: timestamp,
+  };
+}
+
 interface WalletRow {
   virtual_coins: number;
   last_daily_bonus_at: string | null;

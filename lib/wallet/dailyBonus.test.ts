@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canClaimDailyBonus, calculateBonusResult, parseUpdateResult } from './dailyBonus';
+import { canClaimDailyBonus, calculateBonusResult, parseUpdateResult, buildBonusUpdatePayload } from './dailyBonus';
 import { DAILY_BONUS_AMOUNT } from '@/lib/utils/constants';
 
 describe('canClaimDailyBonus', () => {
@@ -105,5 +105,21 @@ describe('parseUpdateResult', () => {
     const result = parseUpdateResult(null, null);
     expect(result.success).toBe(false);
     expect(result.wallet).toBeNull();
+  });
+});
+
+describe('buildBonusUpdatePayload', () => {
+  it('deve conter apenas virtual_coins e last_daily_bonus_at', () => {
+    const payload = buildBonusUpdatePayload(15000, '2025-06-15T10:00:00Z');
+
+    expect(Object.keys(payload)).toHaveLength(2);
+    expect(payload.virtual_coins).toBe(15000);
+    expect(payload.last_daily_bonus_at).toBe('2025-06-15T10:00:00Z');
+  });
+
+  it('não deve incluir updated_at', () => {
+    const payload = buildBonusUpdatePayload(15000, '2025-06-15T10:00:00Z');
+
+    expect(payload).not.toHaveProperty('updated_at');
   });
 });
