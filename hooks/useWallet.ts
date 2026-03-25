@@ -36,8 +36,9 @@ export function useWallet() {
     const res = await fetch('/api/wallet/daily-bonus', { method: 'POST' });
     const data = await res.json();
     if (data.success) {
+      // Use the persisted values returned from the server
       setBalance(data.new_balance);
-      setLastDailyBonusAt(new Date().toISOString());
+      setLastDailyBonusAt(data.last_daily_bonus_at);
     }
     return data;
   }, [setBalance, setLastDailyBonusAt]);

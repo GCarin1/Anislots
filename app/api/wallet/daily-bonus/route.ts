@@ -1,7 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server';
-import { DAILY_BONUS_AMOUNT } from '@/lib/utils/constants';
-
-const HOURS_24 = 24 * 60 * 60 * 1000;
+import { canClaimDailyBonus, calculateBonusResult } from '@/lib/wallet/dailyBonus';
 
 export async function POST() {
   const supabase = await createServerClient();
@@ -13,48 +11,66 @@ export async function POST() {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: wallet } = await supabase
+  // Fetch current wallet
+  const { data: wallet, error: walletError } = await supabase
     .from('wallets')
     .select('virtual_coins, last_daily_bonus_at')
     .eq('user_id', user.id)
     .single();
 
-  if (!wallet) {
+  if (walletError || !wallet) {
     return Response.json({ error: 'Wallet not found' }, { status: 404 });
   }
 
-  const lastBonus = wallet.last_daily_bonus_at
-    ? new Date(wallet.last_daily_bonus_at).getTime()
-    : 0;
-  const now = Date.now();
-
-  if (now - lastBonus < HOURS_24) {
-    const nextBonus = new Date(lastBonus + HOURS_24);
+  // Validate cooldown using pure function
+  const check = canClaimDailyBonus(wallet.last_daily_bonus_at, Date.now());
+  if (!check.canClaim) {
     return Response.json(
-      { error: 'Bônus já coletado hoje', next_bonus_at: nextBonus.toISOString() },
+      { error: 'Bônus já coletado hoje', next_bonus_at: check.nextBonusAt },
       { status: 429 },
     );
   }
 
-  const newBalance = wallet.virtual_coins + DAILY_BONUS_AMOUNT;
+  // Calculate new balance
+  const { newBalance, bonusAmount } = calculateBonusResult(wallet.virtual_coins);
+  const now = new Date().toISOString();
 
-  await supabase
+  // Update wallet and verify it succeeded
+  const { data: updatedWallet, error: updateError } = await supabase
     .from('wallets')
     .update({
       virtual_coins: newBalance,
-      last_daily_bonus_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      last_daily_bonus_at: now,
+      updated_at: now,
     })
-    .eq('user_id', user.id);
+    .eq('user_id', user.id)
+    .select('virtual_coins, last_daily_bonus_at')
+    .single();
 
-  await supabase.from('transactions').insert({
+  if (updateError || !updatedWallet) {
+    console.error('[daily-bonus] Update failed:', updateError);
+    return Response.json({ error: 'Falha ao atualizar saldo' }, { status: 500 });
+  }
+
+  // Insert transaction record (non-blocking, log error if fails)
+  const { error: txError } = await supabase.from('transactions').insert({
     user_id: user.id,
     type: 'daily_bonus',
-    amount: DAILY_BONUS_AMOUNT,
+    amount: bonusAmount,
     balance_before: wallet.virtual_coins,
-    balance_after: newBalance,
+    balance_after: updatedWallet.virtual_coins,
     description: 'Bônus diário de login',
   });
 
-  return Response.json({ success: true, bonus: DAILY_BONUS_AMOUNT, new_balance: newBalance });
+  if (txError) {
+    console.error('[daily-bonus] Transaction log failed:', txError);
+  }
+
+  // Return the actual persisted balance from the DB, not the calculated one
+  return Response.json({
+    success: true,
+    bonus: bonusAmount,
+    new_balance: updatedWallet.virtual_coins,
+    last_daily_bonus_at: updatedWallet.last_daily_bonus_at,
+  });
 }
