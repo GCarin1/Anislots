@@ -1,6 +1,41 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createBrowserClient } from '@/lib/supabase/client';
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const supabase = createBrowserClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/lobby');
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [router]);
+
+  if (checking) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ background: 'var(--app-bg)' }}
+      >
+        <span
+          className="text-2xl font-bold text-glow-waifu"
+          style={{ fontFamily: 'var(--font-display)', color: 'var(--waifu-primary)' }}
+        >
+          Carregando...
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center px-4"

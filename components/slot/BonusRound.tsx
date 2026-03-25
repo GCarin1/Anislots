@@ -17,6 +17,7 @@ export function BonusRound() {
   const setIsBonusRound = useGameStore((s) => s.setIsBonusRound);
   const setBonusReward = useGameStore((s) => s.setBonusReward);
   const setSpinState = useGameStore((s) => s.setSpinState);
+  const startBonusFreeSpins = useGameStore((s) => s.startBonusFreeSpins);
   const betAmount = useGameStore((s) => s.betAmount);
   const selectedWaifu = useGameStore((s) => s.selectedWaifu);
   const nonce = useGameStore((s) => s.nonce);
@@ -62,11 +63,16 @@ export function BonusRound() {
   }
 
   function handleClose() {
+    const freeSpinsCount = reward?.type === 'free_spins' ? reward.value : 0;
     setIsBonusRound(false);
     setSpinState('idle');
     setSelected(null);
     setRevealed(false);
     setReward(null);
+
+    if (freeSpinsCount > 0) {
+      startBonusFreeSpins(freeSpinsCount);
+    }
   }
 
   return (

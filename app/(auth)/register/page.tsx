@@ -10,7 +10,6 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
   const supabase = createBrowserClient();
 
@@ -24,7 +23,6 @@ export default function RegisterPage() {
       password,
       options: {
         data: { username },
-        emailRedirectTo: `${window.location.origin}/callback`,
       },
     });
 
@@ -32,27 +30,8 @@ export default function RegisterPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      setSuccess(true);
-      setLoading(false);
+      window.location.href = '/lobby';
     }
-  }
-
-  if (success) {
-    return (
-      <div className="glass rounded-2xl p-8 text-center">
-        <h2 className="mb-4 text-2xl font-bold">Verifique seu email</h2>
-        <p style={{ color: 'var(--app-text-muted)' }}>
-          Enviamos um link de confirmação para <strong>{email}</strong>
-        </p>
-        <Link
-          href="/login"
-          className="mt-6 inline-block font-medium"
-          style={{ color: 'var(--waifu-primary)' }}
-        >
-          Voltar ao login
-        </Link>
-      </div>
-    );
   }
 
   return (

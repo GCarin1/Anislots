@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { SpinHistoryTable } from '@/components/history/SpinHistoryTable';
+import { LeaderboardTable } from '@/components/leaderboard/LeaderboardTable';
 
-export default function HistoryPage() {
+export default function LeaderboardPage() {
   const router = useRouter();
 
   return (
@@ -20,10 +20,10 @@ export default function HistoryPage() {
           className="text-2xl font-bold"
           style={{ fontFamily: 'var(--font-display)', color: 'var(--waifu-primary)' }}
         >
-          Histórico de Apostas
+          Ranking
         </h1>
       </div>
-      <SpinHistoryTable />
+      <LeaderboardTable />
     </div>
   );
 }

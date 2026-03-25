@@ -25,17 +25,18 @@ export function Symbol({ symbolId, isWinning = false, size = 'md' }: SymbolProps
       className={cn(
         'flex items-center justify-center rounded-lg',
         sizeMap[size],
-        isWinning && 'ring-2 ring-[var(--waifu-primary)]',
+        isWinning && 'ring-2 ring-[var(--waifu-primary)] symbol-winning',
       )}
       animate={
         isWinning
           ? {
-              scale: [1, 1.2, 1],
-              filter: ['brightness(1)', 'brightness(1.8)', 'brightness(1)'],
+              scale: [1, 1.25, 1],
+              filter: ['brightness(1)', 'brightness(2)', 'brightness(1)'],
+              rotate: [0, -3, 3, 0],
             }
           : {}
       }
-      transition={isWinning ? { duration: 0.5, repeat: 3 } : {}}
+      transition={isWinning ? { duration: 0.6, repeat: 4, ease: 'easeInOut' } : {}}
     >
       <span className="select-none">{symbol.emoji}</span>
     </motion.div>
