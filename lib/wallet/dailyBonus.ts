@@ -94,3 +94,42 @@ export function parseUpdateResult(
   // Handle single object response
   return { success: true, wallet: data };
 }
+
+interface BonusPrepareResult {
+  canClaim: boolean;
+  payload: { virtual_coins: number; last_daily_bonus_at: string } | null;
+  bonusAmount: number;
+  balanceBefore: number;
+  nextBonusAt?: string;
+}
+
+/**
+ * Validates cooldown and prepares update payload in a single step.
+ * Combines canClaimDailyBonus + calculateBonusResult + buildBonusUpdatePayload.
+ */
+export function validateAndPrepareBonus(
+  currentBalance: number,
+  lastDailyBonusAt: string | null,
+): BonusPrepareResult {
+  const check = canClaimDailyBonus(lastDailyBonusAt, Date.now());
+
+  if (!check.canClaim) {
+    return {
+      canClaim: false,
+      payload: null,
+      bonusAmount: 0,
+      balanceBefore: currentBalance,
+      nextBonusAt: check.nextBonusAt,
+    };
+  }
+
+  const { newBalance, bonusAmount } = calculateBonusResult(currentBalance);
+  const payload = buildBonusUpdatePayload(newBalance, new Date().toISOString());
+
+  return {
+    canClaim: true,
+    payload,
+    bonusAmount,
+    balanceBefore: currentBalance,
+  };
+}

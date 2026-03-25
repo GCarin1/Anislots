@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { canClaimDailyBonus, calculateBonusResult, parseUpdateResult, buildBonusUpdatePayload } from './dailyBonus';
+import {
+  canClaimDailyBonus,
+  calculateBonusResult,
+  parseUpdateResult,
+  buildBonusUpdatePayload,
+  validateAndPrepareBonus,
+} from './dailyBonus';
 import { DAILY_BONUS_AMOUNT } from '@/lib/utils/constants';
 
 describe('canClaimDailyBonus', () => {
@@ -105,6 +111,31 @@ describe('parseUpdateResult', () => {
     const result = parseUpdateResult(null, null);
     expect(result.success).toBe(false);
     expect(result.wallet).toBeNull();
+  });
+});
+
+describe('validateAndPrepareBonus', () => {
+  it('deve retornar sucesso com payload quando pode coletar', () => {
+    const result = validateAndPrepareBonus(10000, null);
+    expect(result.canClaim).toBe(true);
+    expect(result.payload!.virtual_coins).toBe(10000 + DAILY_BONUS_AMOUNT);
+    expect(result.bonusAmount).toBe(DAILY_BONUS_AMOUNT);
+    expect(result.balanceBefore).toBe(10000);
+  });
+
+  it('deve retornar falha quando bônus já coletado', () => {
+    const recentDate = new Date(Date.now() - 1000).toISOString(); // 1s atrás
+    const result = validateAndPrepareBonus(10000, recentDate);
+    expect(result.canClaim).toBe(false);
+    expect(result.payload).toBeNull();
+    expect(result.nextBonusAt).toBeDefined();
+  });
+
+  it('deve funcionar com saldo zero e sem bônus anterior', () => {
+    const result = validateAndPrepareBonus(0, null);
+    expect(result.canClaim).toBe(true);
+    expect(result.payload!.virtual_coins).toBe(DAILY_BONUS_AMOUNT);
+    expect(result.balanceBefore).toBe(0);
   });
 });
 
