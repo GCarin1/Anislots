@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/leaderboard', label: 'Ranking', icon: '🏆' },
   { href: '/history', label: 'Histórico', icon: '📜' },
   { href: '/wallet', label: 'Carteira', icon: '💰' },
+  { href: '/profile', label: 'Perfil', icon: '👤' },
 ];
 
 export function MobileNav() {
