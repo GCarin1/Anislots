@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canClaimDailyBonus, calculateBonusResult } from './dailyBonus';
+import { canClaimDailyBonus, calculateBonusResult, parseUpdateResult } from './dailyBonus';
 import { DAILY_BONUS_AMOUNT } from '@/lib/utils/constants';
 
 describe('canClaimDailyBonus', () => {
@@ -64,5 +64,46 @@ describe('calculateBonusResult', () => {
   it('deve funcionar com saldo grande', () => {
     const result = calculateBonusResult(999999);
     expect(result.newBalance).toBe(999999 + DAILY_BONUS_AMOUNT);
+  });
+});
+
+describe('parseUpdateResult', () => {
+  it('deve retornar sucesso quando data é array com um item', () => {
+    const result = parseUpdateResult(
+      [{ virtual_coins: 15000, last_daily_bonus_at: '2025-06-15T10:00:00Z' }],
+      null,
+    );
+    expect(result.success).toBe(true);
+    expect(result.wallet!.virtual_coins).toBe(15000);
+    expect(result.wallet!.last_daily_bonus_at).toBe('2025-06-15T10:00:00Z');
+  });
+
+  it('deve retornar sucesso quando data é objeto único', () => {
+    const result = parseUpdateResult(
+      { virtual_coins: 15000, last_daily_bonus_at: '2025-06-15T10:00:00Z' },
+      null,
+    );
+    expect(result.success).toBe(true);
+    expect(result.wallet!.virtual_coins).toBe(15000);
+  });
+
+  it('deve retornar falha quando há erro', () => {
+    const error = { code: 'PGRST116', message: 'Cannot coerce', details: '', hint: '' };
+    const result = parseUpdateResult(null, error);
+    expect(result.success).toBe(false);
+    expect(result.wallet).toBeNull();
+    expect(result.errorMessage).toContain('PGRST116');
+  });
+
+  it('deve retornar falha quando data é array vazio', () => {
+    const result = parseUpdateResult([], null);
+    expect(result.success).toBe(false);
+    expect(result.wallet).toBeNull();
+  });
+
+  it('deve retornar falha quando data é null', () => {
+    const result = parseUpdateResult(null, null);
+    expect(result.success).toBe(false);
+    expect(result.wallet).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
-import { createServerClient } from '@/lib/supabase/server';
-import { canClaimDailyBonus, calculateBonusResult } from '@/lib/wallet/dailyBonus';
+import { createServerClient, createServiceClient } from '@/lib/supabase/server';
+import { canClaimDailyBonus, calculateBonusResult, parseUpdateResult } from '@/lib/wallet/dailyBonus';
 
 export async function POST() {
   const supabase = await createServerClient();
@@ -11,8 +11,11 @@ export async function POST() {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Use service client to bypass RLS for write operations
+  const serviceClient = await createServiceClient();
+
   // Fetch current wallet
-  const { data: wallet, error: walletError } = await supabase
+  const { data: wallet, error: walletError } = await serviceClient
     .from('wallets')
     .select('virtual_coins, last_daily_bonus_at')
     .eq('user_id', user.id)
@@ -35,8 +38,8 @@ export async function POST() {
   const { newBalance, bonusAmount } = calculateBonusResult(wallet.virtual_coins);
   const now = new Date().toISOString();
 
-  // Update wallet and verify it succeeded
-  const { data: updatedWallet, error: updateError } = await supabase
+  // Update wallet without .single() to avoid PGRST116 on RLS-filtered results
+  const { data: updateData, error: updateError } = await serviceClient
     .from('wallets')
     .update({
       virtual_coins: newBalance,
@@ -44,21 +47,22 @@ export async function POST() {
       updated_at: now,
     })
     .eq('user_id', user.id)
-    .select('virtual_coins, last_daily_bonus_at')
-    .single();
+    .select('virtual_coins, last_daily_bonus_at');
 
-  if (updateError || !updatedWallet) {
-    console.error('[daily-bonus] Update failed:', updateError);
+  const parsed = parseUpdateResult(updateData, updateError);
+
+  if (!parsed.success || !parsed.wallet) {
+    console.error('[daily-bonus] Update failed:', parsed.errorMessage);
     return Response.json({ error: 'Falha ao atualizar saldo' }, { status: 500 });
   }
 
-  // Insert transaction record (non-blocking, log error if fails)
-  const { error: txError } = await supabase.from('transactions').insert({
+  // Insert transaction record
+  const { error: txError } = await serviceClient.from('transactions').insert({
     user_id: user.id,
     type: 'daily_bonus',
     amount: bonusAmount,
     balance_before: wallet.virtual_coins,
-    balance_after: updatedWallet.virtual_coins,
+    balance_after: parsed.wallet.virtual_coins,
     description: 'Bônus diário de login',
   });
 
@@ -66,11 +70,11 @@ export async function POST() {
     console.error('[daily-bonus] Transaction log failed:', txError);
   }
 
-  // Return the actual persisted balance from the DB, not the calculated one
+  // Return the actual persisted balance from the DB
   return Response.json({
     success: true,
     bonus: bonusAmount,
-    new_balance: updatedWallet.virtual_coins,
-    last_daily_bonus_at: updatedWallet.last_daily_bonus_at,
+    new_balance: parsed.wallet.virtual_coins,
+    last_daily_bonus_at: parsed.wallet.last_daily_bonus_at,
   });
 }
