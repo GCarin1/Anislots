@@ -16,7 +16,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="glass fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-white/10 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-white/10 md:hidden" style={{ background: 'rgba(10, 10, 15, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', boxShadow: '0 -2px 20px rgba(0,0,0,0.5), 0 -1px 0 var(--waifu-glow)' }}>
       {NAV_ITEMS.map((item) => {
         const isActive = pathname === item.href;
         return (

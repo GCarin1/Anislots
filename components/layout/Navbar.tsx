@@ -10,7 +10,7 @@ export function Navbar() {
   const { muted, toggleMute } = useSoundContext();
 
   return (
-    <nav className="glass sticky top-0 z-50 flex h-16 items-center justify-between px-4 md:px-6">
+    <nav className="sticky top-0 z-50 flex h-16 items-center justify-between px-4 md:px-6" style={{ background: 'rgba(10, 10, 15, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--app-border)', boxShadow: '0 2px 20px rgba(0,0,0,0.5), 0 1px 0 var(--waifu-glow)' }}>
       <Link
         href="/lobby"
         className="text-xl font-bold text-glow-waifu"

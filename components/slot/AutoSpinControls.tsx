@@ -6,8 +6,16 @@ import { cn } from '@/lib/utils/cn';
 const AUTO_SPIN_OPTIONS = [5, 10, 25, 50];
 
 export function AutoSpinControls() {
-  const { autoSpinActive, autoSpinRemaining, startAutoSpin, stopAutoSpin, spinState } =
+  const { autoSpinActive, autoSpinRemaining, isBonusSpin, startAutoSpin, stopAutoSpin, spinState } =
     useGameStore();
+
+  if (autoSpinActive && isBonusSpin) {
+    return (
+      <div className="rounded-lg bg-yellow-500/20 px-4 py-2 text-sm font-bold text-yellow-400">
+        Free Spins ({autoSpinRemaining})
+      </div>
+    );
+  }
 
   if (autoSpinActive) {
     return (

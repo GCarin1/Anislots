@@ -59,6 +59,33 @@ body {
   border-radius: 8px;
   border: 2px solid var(--waifu-primary);
   box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px var(--waifu-glow);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.reel-container.reel-spinning {
+  border-color: var(--waifu-secondary);
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 20px var(--waifu-glow),
+    0 0 40px var(--waifu-glow),
+    0 0 60px var(--waifu-glow);
+  animation: reel-glow-pulse 0.6s ease-in-out infinite;
+}
+
+@keyframes reel-glow-pulse {
+  0%, 100% {
+    box-shadow:
+      inset 0 0 20px rgba(0,0,0,0.5),
+      0 0 15px var(--waifu-glow),
+      0 0 30px var(--waifu-glow);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 20px rgba(0,0,0,0.5),
+      0 0 25px var(--waifu-glow),
+      0 0 50px var(--waifu-glow),
+      0 0 80px var(--waifu-glow);
+  }
 }
 
 /* ── Scrollbar custom ─────────────────── */
@@ -82,4 +109,20 @@ body {
 @keyframes spin-reel {
   from { transform: translateY(0); }
   to { transform: translateY(-100%); }
+}
+
+/* ── Winning symbol glow ────────────── */
+.symbol-winning {
+  animation: symbol-glow 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes symbol-glow {
+  from {
+    box-shadow: 0 0 8px var(--waifu-primary), 0 0 16px var(--waifu-glow);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  to {
+    box-shadow: 0 0 16px var(--waifu-primary), 0 0 32px var(--waifu-glow), 0 0 48px var(--waifu-glow);
+    background: rgba(255, 255, 255, 0.15);
+  }
 }

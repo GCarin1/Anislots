@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { SymbolId } from '@/lib/slot/symbols';
 import type { WonPayline, BonusReward, SpinState } from '@/types/game';
 import { BET_STEPS } from '@/lib/utils/constants';
@@ -37,7 +38,9 @@ interface GameStore {
   autoSpinActive: boolean;
   autoSpinCount: number;
   autoSpinRemaining: number;
+  isBonusSpin: boolean;
   startAutoSpin: (count: number) => void;
+  startBonusFreeSpins: (count: number) => void;
   decrementAutoSpin: () => void;
   stopAutoSpin: () => void;
 
@@ -45,7 +48,7 @@ interface GameStore {
   incrementNonce: () => void;
 }
 
-export const useGameStore = create<GameStore>((set, get) => ({
+export const useGameStore = create<GameStore>()(persist((set, get) => ({
   spinState: 'idle',
   setSpinState: (s) => set({ spinState: s }),
 
@@ -88,18 +91,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
   autoSpinActive: false,
   autoSpinCount: 0,
   autoSpinRemaining: 0,
+  isBonusSpin: false,
   startAutoSpin: (count) =>
-    set({ autoSpinActive: true, autoSpinCount: count, autoSpinRemaining: count }),
+    set({ autoSpinActive: true, autoSpinCount: count, autoSpinRemaining: count, isBonusSpin: false }),
+  startBonusFreeSpins: (count) =>
+    set({ autoSpinActive: true, autoSpinCount: count, autoSpinRemaining: count, isBonusSpin: true }),
   decrementAutoSpin: () => {
     const { autoSpinRemaining } = get();
     if (autoSpinRemaining <= 1) {
-      set({ autoSpinActive: false, autoSpinCount: 0, autoSpinRemaining: 0 });
+      set({ autoSpinActive: false, autoSpinCount: 0, autoSpinRemaining: 0, isBonusSpin: false });
     } else {
       set({ autoSpinRemaining: autoSpinRemaining - 1 });
     }
   },
-  stopAutoSpin: () => set({ autoSpinActive: false, autoSpinRemaining: 0 }),
+  stopAutoSpin: () => set({ autoSpinActive: false, autoSpinRemaining: 0, isBonusSpin: false }),
 
   nonce: Math.floor(Math.random() * 1000000),
   incrementNonce: () => set((s) => ({ nonce: s.nonce + 1 })),
+}), {
+  name: 'anislots-game',
+  partialize: (state) => ({
+    selectedWaifu: state.selectedWaifu,
+    betAmount: state.betAmount,
+  }),
 }));
